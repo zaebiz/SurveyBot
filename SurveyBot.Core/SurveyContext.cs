@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using SurveyBot.Core.Models;
 using SurveyBot.Core.Models.Domain;
 
@@ -25,7 +26,7 @@ namespace SurveyBot.Core
         public IMongoCollection<Survey> Surveys 
             => _mongo.GetCollection<Survey>("Surveys");
 
-        public IQueryable<Survey> SurveysQueryable
+        public IQueryable SurveysQueryable
             => _mongo.GetCollection<Survey>("Surveys").AsQueryable();
 
         public IMongoCollection<SurveyResult> SurveyResults
