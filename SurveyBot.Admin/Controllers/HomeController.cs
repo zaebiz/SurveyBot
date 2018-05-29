@@ -31,7 +31,7 @@ namespace SurveyBot.Admin.Controllers
         {
             survey.CreateDate = DateTime.Now;
             survey = await _surveySvc.CreateSurvey(survey);
-            return Json(_surveySvc.GetSurvey(survey.InternalId.ToString()));
+            return Json(await _surveySvc.GetSurvey(survey.InternalId.ToString()));
         }
 
         public IActionResult Error()
