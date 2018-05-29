@@ -32,5 +32,8 @@ namespace SurveyBot.Core
         public IMongoCollection<SurveyResult> SurveyResults
             => _mongo.GetCollection<SurveyResult>("SurveyResults");
 
+        public IMongoCollection<Counter> Counters
+            => _mongo.GetCollection<Counter>("Counters");
+
     }
 }

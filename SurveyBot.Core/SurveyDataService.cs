@@ -34,6 +34,7 @@ namespace SurveyBot.Core
 
         public async Task<Survey> CreateSurvey(Survey survey)
         {
+            survey.Id = await GetNextSequenceValue("survey");
             await _ctx.Surveys.InsertOneAsync(survey);
             return survey;
 
@@ -57,6 +58,24 @@ namespace SurveyBot.Core
                 new FindOneAndUpdateOptions<Survey>() { IsUpsert = false, ReturnDocument = ReturnDocument.After}
             );
 
+        }
+
+        /// <summary>
+        ///  расчитать следующий порядковый номер для "автоинкремента"
+        /// </summary>
+        public async Task<int> GetNextSequenceValue(string counterName)
+        {
+            var counter = await _ctx.Counters.FindOneAndUpdateAsync(
+                Builders<Counter>.Filter.Eq(x => x.Name, counterName),
+                Builders<Counter>.Update.Inc(x => x.Value, 1),
+                new FindOneAndUpdateOptions<Counter>()
+                {
+                    ReturnDocument = ReturnDocument.After,
+                    IsUpsert = true,
+                }
+            );
+
+            return counter.Value;
         }
     }
 
