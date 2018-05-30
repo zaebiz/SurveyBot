@@ -13,69 +13,75 @@ namespace SurveyBot.Core
     public class SurveyDataService : ISurveyDataService
     {
         private readonly SurveyContext _ctx;
+        private readonly ISequenceDataService _sequence;
+        private const string AutoincrementSequenceName = "survey";
 
-        public SurveyDataService(SurveyContext ctx)
+        public SurveyDataService(SurveyContext ctx, ISequenceDataService sequence)
         {
             _ctx = ctx;
+            _sequence = sequence;
         }
 
         public async Task<Survey> GetSurvey(string id)
         {
-            ObjectId internalId = ObjectId.Empty;
-            if (ObjectId.TryParse(id, out internalId))
-            {
-                return await (await _ctx.Surveys
-                    .FindAsync(Builders<Survey>.Filter.Eq(x => x.InternalId, internalId)))
-                    .FirstAsync();
-            }
+            //ObjectId internalId = ObjectId.Empty;
+            //if (ObjectId.TryParse(id, out internalId))
+            //{
+            //    return await (await _ctx.Surveys
+            //        .FindAsync(Builders<Survey>.Filter.Eq(x => x.InternalId, internalId)))
+            //        .FirstAsync();
+            //}
 
-            return null;
+            //return null;
+
+            return await (await _ctx.Surveys
+                    .FindAsync(Builders<Survey>.Filter.Eq(x => x.Id, id)))
+                    .FirstAsync();
         }
 
         public async Task<Survey> CreateSurvey(Survey survey)
         {
-            survey.Id = await GetNextSequenceValue("survey");
+            await CreateIdForNewQuestions(survey);
+
             await _ctx.Surveys.InsertOneAsync(survey);
             return survey;
-
-            //return await _ctx.Surveys.FindOneAndReplaceAsync(
-            //    Builders<Survey>.Filter.Eq(x => x.InternalId, survey.InternalId),
-            //    survey,
-            //    new FindOneAndReplaceOptions<Survey> {IsUpsert = true, ReturnDocument = ReturnDocument.After}
-            //);
         }
 
         public async Task<Survey> UpdateSurvey(Survey survey)
         {
+            if (await IsSurveyEditForbidden())
+            {
+                throw new Exception("Редактирование опроса завершено");
+            }
+
+            await CreateIdForNewQuestions(survey);
+
             var update = Builders<Survey>.Update
                 .Set(x => x.UpdateDate, DateTime.Now)
                 .Set(x => x.Name, survey.Name)
                 .Set(x => x.Questions, survey.Questions);
 
             return await _ctx.Surveys.FindOneAndUpdateAsync(
-                Builders<Survey>.Filter.Eq(x => x.InternalId, survey.InternalId),
+                Builders<Survey>.Filter.Eq(x => x.Id, survey.Id),
                 update,
                 new FindOneAndUpdateOptions<Survey>() { IsUpsert = false, ReturnDocument = ReturnDocument.After}
             );
 
         }
 
-        /// <summary>
-        ///  расчитать следующий порядковый номер для "автоинкремента"
-        /// </summary>
-        public async Task<int> GetNextSequenceValue(string counterName)
+        private async Task CreateIdForNewQuestions(Survey survey)
         {
-            var counter = await _ctx.Counters.FindOneAndUpdateAsync(
-                Builders<Counter>.Filter.Eq(x => x.Name, counterName),
-                Builders<Counter>.Update.Inc(x => x.Value, 1),
-                new FindOneAndUpdateOptions<Counter>()
-                {
-                    ReturnDocument = ReturnDocument.After,
-                    IsUpsert = true,
-                }
-            );
+            if (survey.Questions != null && survey.Questions.Any())
+            {
+                foreach (var q in survey.Questions)
+                    q.Id = q.Id != default(int) 
+                        ? q.Id : await _sequence.GetNextValue(AutoincrementSequenceName);
+            }
+        }
 
-            return counter.Value;
+        private async Task<bool> IsSurveyEditForbidden()
+        {
+            return await Task.FromResult(false);
         }
     }
 

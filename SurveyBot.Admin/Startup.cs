@@ -24,6 +24,7 @@ namespace SurveyBot.Admin
 
             services.AddScoped<SurveyContext>();
             services.AddScoped<ISurveyDataService, SurveyDataService>();
+            services.AddScoped<ISequenceDataService, SequenceDataService>();
 
             // reporting api versions will return the headers "api-supported-versions" and "api-deprecated-versions"
             services.AddApiVersioning(o => o.ReportApiVersions = true);
