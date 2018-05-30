@@ -45,8 +45,6 @@ namespace SurveyBot.Admin.Controllers
             }
 
             survey = await _surveySvc.UpdateSurvey(survey);
-            survey = await _surveySvc.GetSurvey(survey.Id);
-
             return Json(survey);
         }
 
