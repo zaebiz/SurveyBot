@@ -18,7 +18,6 @@ namespace SurveyBot.Core
 
         public SurveyContext(IOptions<MongoSettings> settings)
         {
-            //var client = new MongoClient(settings.Value.ConnectionString);
             var client = new MongoClient(new MongoClientSettings()
             {
                 Server = new MongoServerAddress(settings.Value.Server, settings.Value.Port),
@@ -31,6 +30,17 @@ namespace SurveyBot.Core
             });
 
             _mongo = client.GetDatabase(settings.Value.Database);
+
+            if (_mongo == null)
+            {
+                throw new ArgumentNullException("MongoDB instance is inaccessible");
+            }
+        }
+
+        public SurveyContext(string connectionString, string database)
+        {
+            var client = new MongoClient(connectionString);
+            _mongo = client.GetDatabase(database);
 
             if (_mongo == null)
             {

@@ -6,6 +6,7 @@ using MongoDB.Bson;
 using SurveyBot.Core.Models.Domain;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using SurveyBot.Core.Models.Enum;
 
 
 namespace SurveyBot.Core
@@ -49,9 +50,9 @@ namespace SurveyBot.Core
 
         public async Task<Survey> UpdateSurvey(Survey survey)
         {
-            if (await IsSurveyEditForbidden())
+            if (await IsSurveyEditForbidden(survey.Id))
             {
-                throw new Exception("Редактирование опроса завершено");
+                throw new Exception("Survey edit forbidden");
             }
 
             await CreateIdForNewQuestions(survey);
@@ -69,6 +70,19 @@ namespace SurveyBot.Core
 
         }
 
+        public async Task<Survey> CloseSurvey(string surveyId)
+        {
+            var update = Builders<Survey>.Update
+                .Set(x => x.Status, (int) SurveyStatus.Closed);
+
+            return await _ctx.Surveys.FindOneAndUpdateAsync(
+                Builders<Survey>.Filter.Eq(x => x.Id, surveyId),
+                update,
+                new FindOneAndUpdateOptions<Survey>() { IsUpsert = false, ReturnDocument = ReturnDocument.After }
+            );
+
+        }
+
         private async Task CreateIdForNewQuestions(Survey survey)
         {
             if (survey.Questions != null && survey.Questions.Any())
@@ -79,9 +93,10 @@ namespace SurveyBot.Core
             }
         }
 
-        private async Task<bool> IsSurveyEditForbidden()
+        private async Task<bool> IsSurveyEditForbidden(string surveyId)
         {
-            return await Task.FromResult(false);
+            int[] activeStatuses = {(int) SurveyStatus.Active, (int) SurveyStatus.Finished};
+            return activeStatuses.Contains((await GetSurvey(surveyId)).Status);
         }
     }
 
@@ -90,5 +105,6 @@ namespace SurveyBot.Core
         Task<Survey> GetSurvey(string id);
         Task<Survey> CreateSurvey(Survey survey);
         Task<Survey> UpdateSurvey(Survey survey);
+        Task<Survey> CloseSurvey(string surveyId);
     }
 }

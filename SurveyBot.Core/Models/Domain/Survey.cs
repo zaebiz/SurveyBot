@@ -4,6 +4,7 @@ using System.Text;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.IdGenerators;
+using SurveyBot.Core.Models.Enum;
 
 namespace SurveyBot.Core.Models.Domain
 {
@@ -21,6 +22,7 @@ namespace SurveyBot.Core.Models.Domain
         public string CreatorName { get; set; }
         public DateTime UpdateDate { get; set; } = DateTime.Now;
         public DateTime CreateDate { get; set; } = DateTime.Now;
+        public int Status { get; set; } = (int)SurveyStatus.New;
 
         [BsonRequired]
         public IEnumerable<SurveyQuestion> Questions { get; set; }
