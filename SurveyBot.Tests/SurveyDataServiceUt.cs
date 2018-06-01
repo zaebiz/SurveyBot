@@ -12,21 +12,22 @@ namespace SurveyBot.Tests
 {
     public class SurveyDataServiceUt
     {
-        public ISurveyDataService _testObj;
+        private ISurveyDataService _testObj;
+        private Mock<ISequenceDataService> _sequenceSvcMock;
+
         private const string ConnStr = "mongodb://dev2:qwertyh!@ds037611.mlab.com:37611/rusapi";
         private const string DatabaseName = "rusapi";
-
 
         public SurveyDataServiceUt()
         {            
             var ctx = new SurveyContext(ConnStr, DatabaseName);
 
-            var sequenceSvcMock = new Mock<ISequenceDataService>();
-            sequenceSvcMock
+            _sequenceSvcMock = new Mock<ISequenceDataService>();
+            _sequenceSvcMock
                 .Setup(x => x.GetNextValue(It.IsAny<string>()))
                 .ReturnsAsync(new Random().Next());
 
-            _testObj = new SurveyDataService(ctx, sequenceSvcMock.Object);    
+            _testObj = new SurveyDataService(ctx, _sequenceSvcMock.Object);    
         }
 
         [Fact]
@@ -59,11 +60,10 @@ namespace SurveyBot.Tests
             survey = await _testObj.CreateSurvey(survey);
 
             Assert.False(string.IsNullOrEmpty(survey.Id));
-            foreach (var surveyQuestion in survey.Questions)
-            {
-                Assert.True(surveyQuestion.Id > 0);
-            }
-
+            _sequenceSvcMock.Verify(
+                x => x.GetNextValue(It.IsAny<string>()),
+                Times.Exactly(survey.Questions.Count())
+            );
 
             // Update
             survey.Questions = new List<SurveyQuestion>()
