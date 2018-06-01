@@ -73,7 +73,7 @@ namespace SurveyBot.Core
         public async Task<Survey> CloseSurvey(string surveyId)
         {
             var update = Builders<Survey>.Update
-                .Set(x => x.Status, (int) SurveyStatus.Closed);
+                .Set(x => x.Status, (int) SurveyStatusEnum.Closed);
 
             return await _ctx.Surveys.FindOneAndUpdateAsync(
                 Builders<Survey>.Filter.Eq(x => x.Id, surveyId),
@@ -95,7 +95,7 @@ namespace SurveyBot.Core
 
         private async Task<bool> IsSurveyEditForbidden(string surveyId)
         {
-            int[] activeStatuses = {(int) SurveyStatus.Active, (int) SurveyStatus.Finished};
+            int[] activeStatuses = {(int) SurveyStatusEnum.Active, (int) SurveyStatusEnum.Finished};
             return activeStatuses.Contains((await GetSurvey(surveyId)).Status);
         }
     }

@@ -36,7 +36,7 @@ namespace SurveyBot.Tests
             var survey = new Survey
             {
                 Name = "Test survey",
-                Status = (int)SurveyStatus.New,
+                Status = (int)SurveyStatusEnum.New,
                 CreatorName = "test creator",
                 Questions = new List<SurveyQuestion>()
                 {
@@ -80,7 +80,7 @@ namespace SurveyBot.Tests
             await _testObj.CloseSurvey(survey.Id);
             survey = await _testObj.GetSurvey(survey.Id);
 
-            Assert.Equal((int)SurveyStatus.Closed, survey.Status);
+            Assert.Equal((int)SurveyStatusEnum.Closed, survey.Status);
         }
     }
 }

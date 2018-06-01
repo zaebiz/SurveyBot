@@ -22,7 +22,7 @@ namespace SurveyBot.Core.Models.Domain
         public string CreatorName { get; set; }
         public DateTime UpdateDate { get; set; } = DateTime.Now;
         public DateTime CreateDate { get; set; } = DateTime.Now;
-        public int Status { get; set; } = (int)SurveyStatus.New;
+        public int Status { get; set; } = (int)SurveyStatusEnum.New;
 
         [BsonRequired]
         public IEnumerable<SurveyQuestion> Questions { get; set; }
